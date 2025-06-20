@@ -6,6 +6,7 @@ from torch.utils.data import DataLoader, Dataset
 import torch.nn.functional as F
 import matplotlib.pyplot as plt
 import math
+from views_combine import CombinedCMRDataset
 
 # ------------------------------
 # SSIM implementation (no external deps)
@@ -136,17 +137,35 @@ class CombinedLoss(nn.Module):
 
 def compute_psnr(mse_val):
     return 10*torch.log10(1.0/mse_val)
-
+#What Your Folder Structure Should Look Like:
+#data_root/
+#│
+#├── sax/
+#│   ├── input/
+#│   │   ├── P001_cine_sax.npy
+#│   └── target/
+#│       ├── P001_cine_sax_gt.npy
+#│
+#├── lax3ch/
+#│   ├── input/
+#│   └── target/
+#│
+#├── lax4ch/
+#    ├── input/
+#    └── target/
 # ------------------------------
 # Training & visualization
 # ------------------------------
 if __name__ == '__main__':
     # Paths: input vs. ground-truth
-    input_path  = r"C:\Users\LAPTOP ASUS LAMA C\kepi data E\FILE DATA E\ZHUANTI\CMRxRecon2025\Code\output_numpyflip_lax3ch\P001_cine_lax_3ch.npy"
-    target_path = r"C:\Users\LAPTOP ASUS LAMA C\kepi data E\FILE DATA E\ZHUANTI\CMRxRecon2025\Code\cine_lax_3ch_slice1_time1_mag.npy"
-    bs, lr, epochs, alpha = 2, 1e-3, 20, 0.5
 
-    ds = MRIDataset(input_path, target_path)
+    # input_path  = r"C:\Users\LAPTOP ASUS LAMA C\kepi data E\FILE DATA E\ZHUANTI\CMRxRecon2025\Code\output_numpyflip_lax3ch\P001_cine_lax_3ch.npy"
+    # target_path = r"C:\Users\LAPTOP ASUS LAMA C\kepi data E\FILE DATA E\ZHUANTI\CMRxRecon2025\Code\cine_lax_3ch_slice1_time1_mag.npy"
+
+    bs, lr, epochs, alpha = 2, 1e-3, 20, 0.5
+    data_root = "path_to_data_root_with_sax_lax3ch_lax4ch"
+    # ds = MRIDataset(input_path, target_path)
+    ds = CombinedCMRDataset(data_root)
     dl = DataLoader(ds, batch_size=bs, shuffle=True)
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model = TransUNet().to(device)
